@@ -12,14 +12,15 @@ export const DEPTH_OPTIONS = [
   { value: 18, label: "18 (très lent)" },
 ];
 
-export const MOVE_CLASSES: Record<MoveClass, { label: string; symbol: string; color: string }> = {
-  best: { label: "Meilleur coup", symbol: "★", color: "#81b64c" },
-  excellent: { label: "Excellent", symbol: "!", color: "#96bc4b" },
-  good: { label: "Bon", symbol: "✓", color: "#95af8a" },
-  forced: { label: "Forcé", symbol: "□", color: "#9a968f" },
-  inaccuracy: { label: "Imprécision", symbol: "?!", color: "#f7c045" },
-  mistake: { label: "Erreur", symbol: "?", color: "#e58f2a" },
-  blunder: { label: "Gaffe", symbol: "??", color: "#ca3431" },
+/** Couleurs : variables --color-move-* de app/globals.css. */
+export const MOVE_CLASSES: Record<MoveClass, { label: string; phrase: string; symbol: string; color: string }> = {
+  best: { phrase: "est le meilleur coup", label: "Meilleur coup", symbol: "★", color: "var(--color-move-best)" },
+  excellent: { phrase: "est excellent", label: "Excellent", symbol: "!", color: "var(--color-move-excellent)" },
+  good: { phrase: "est un bon coup", label: "Bon", symbol: "✓", color: "var(--color-move-good)" },
+  forced: { phrase: "est forcé", label: "Forcé", symbol: "□", color: "var(--color-move-forced)" },
+  inaccuracy: { phrase: "est une imprécision", label: "Imprécision", symbol: "?!", color: "var(--color-move-inaccuracy)" },
+  mistake: { phrase: "est une erreur", label: "Erreur", symbol: "?", color: "var(--color-move-mistake)" },
+  blunder: { phrase: "est une gaffe", label: "Gaffe", symbol: "??", color: "var(--color-move-blunder)" },
 };
 
 export const MOVE_CLASS_ORDER: MoveClass[] = [

@@ -10,8 +10,45 @@
   --color-muted: #9a968f;
   --color-brand: #81b64c;
   --color-brand-light: #a3d16e;
-  --color-sq-light: #ebecd0;
-  --color-sq-dark: #779556;
+
+  /* --- Analyseur (revue de partie façon chess.com) ------------------- */
+  --color-line-soft: #2a241e;
+  --color-cream: #f3ece0;
+  --color-ink-soft: #cfc5b6;
+  --color-sand: #d9c7a8;
+  --color-gold: #e8b889;
+  --color-gold-strong: #d4975c;
+  --color-danger: #e5735e;
+
+  --color-sq-light: #e6d3ae;
+  --color-sq-dark: #a26f48;
+  --color-sq-highlight: rgb(255 196 87 / 0.45);
+  --color-arrow: #f0a43c;
+  --color-piece-white: #fffaf1;
+  --color-piece-black: #1b1714;
+  --color-eval-white: #f3ece0;
+  --color-eval-black: #2a241e;
+  --color-graph-bg: #3a332b;
+  --color-graph-axis: #6b6156;
+
+  --color-move-best: #81b64c;
+  --color-move-excellent: #96bc4b;
+  --color-move-good: #95af8a;
+  --color-move-forced: #978b7b;
+  --color-move-inaccuracy: #f7c045;
+  --color-move-mistake: #ffa459;
+  --color-move-blunder: #fa412d;
+
+  --text-2xs: 0.625rem;
+  --text-2xs--line-height: 0.875rem;
+  --text-eyebrow: 0.6875rem;
+  --text-eyebrow--line-height: 1rem;
+  --tracking-label: 0.2em;
+
+  --spacing-nav: 4rem;
+  --spacing-panel: 26rem;
+  --spacing-eval-bar: 1.5rem;
+  --spacing-move-num: 2.5rem;
 
   --font-sans: "Inter Variable", ui-sans-serif, system-ui, sans-serif;
   --font-display: "Playfair Display Variable", Georgia, serif;
@@ -33,12 +70,100 @@ body {
   font-variant-emoji: text;
 }
 
+/* ==========================================================================
+   Utilitaires de l'analyseur
+   ========================================================================== */
+
+/* Zone de l'analyseur : tout l'écran sous la barre de navigation */
+@utility h-analyzer {
+  height: calc(100svh - var(--spacing-nav));
+}
+
+/* Taille de l'échiquier : le plus grand carré qui tient à la fois dans la
+   largeur disponible et dans la hauteur de l'écran (moins les bandeaux des
+   joueurs), pour qu'il reste toujours visible en entier. */
+@utility size-board {
+  aspect-ratio: 1;
+  width: min(
+    calc(100vw - 2.5rem - var(--spacing-eval-bar) - 0.5rem),
+    calc(100svh - var(--spacing-nav) - 8rem)
+  );
+
+  @media (width >= 64rem) {
+    width: min(
+      calc(min(100vw, 80rem) - 4rem - var(--spacing-panel) - 1.5rem - var(--spacing-eval-bar) - 0.5rem),
+      calc(100svh - var(--spacing-nav) - 8rem)
+    );
+  }
+}
+
+/* Grille de l'analyseur : échiquier | panneau */
+@utility grid-analyzer {
+  grid-template-columns: minmax(0, 1fr) var(--spacing-panel);
+}
+
+/* Colonne de l'échiquier : barre d'éval | plateau, joueurs au-dessus et en dessous */
+@utility grid-board {
+  grid-template-columns: var(--spacing-eval-bar) auto;
+  column-gap: 0.5rem;
+}
+
+/* Liste des coups : numéro | Blancs | Noirs */
+@utility grid-moves {
+  grid-template-columns: var(--spacing-move-num) 1fr 1fr;
+}
+
+/* Hauteur du panneau d'analyse sur mobile */
+@utility h-panel-mobile {
+  height: 70svh;
+}
+
+/* Pièces de l'échiquier 2D : taille relative à l'échiquier (container query) */
+@utility board-container {
+  container-type: inline-size;
+}
+
+/* Glyphes Unicode des pièces (♚ ♛ …) : on force l'affichage texte, pas emoji */
+@utility glyph {
+  font-family: "Segoe UI Symbol", "DejaVu Sans", "Noto Sans Symbols 2", serif;
+  font-variant-emoji: text;
+  line-height: 1;
+}
+
+/* Taille des pièces sur l'échiquier : ~85 % d'une case */
+@utility piece-size {
+  font-size: 10.5cqw;
+}
+
+@utility coord-label {
+  font-size: 1.9cqw;
+  font-weight: 700;
+  line-height: 1;
+}
+
+@utility move-badge-board {
+  width: 4.6cqw;
+  height: 4.6cqw;
+  font-size: 2.3cqw;
+}
+
 .piece-white {
-  color: #fff;
-  text-shadow: 0 0 2px #000, 0 0 1px #000, 0 1px 2px rgb(0 0 0 / 0.6);
+  color: var(--color-piece-white);
+  text-shadow:
+    0 0 2px var(--color-piece-black),
+    0 0 1px var(--color-piece-black),
+    0 2px 3px rgb(0 0 0 / 0.45);
 }
 
 .piece-black {
-  color: #1d1b19;
-  text-shadow: 0 0 1px rgb(255 255 255 / 0.35);
+  color: var(--color-piece-black);
+  text-shadow:
+    0 0 1px rgb(255 255 255 / 0.35),
+    0 2px 3px rgb(0 0 0 / 0.35);
+}
+
+/* Barre de défilement discrète pour la liste des coups */
+.scroll-thin {
+  scrollbar-width: thin;
+  scrollbar-color: var(--color-surface-3) transparent;
 }

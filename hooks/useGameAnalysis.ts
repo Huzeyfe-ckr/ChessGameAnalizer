@@ -60,6 +60,7 @@ export function useGameAnalysis() {
       if (terminal) ev = terminal;
       else {
         const raw = await engineRef.current.analyse(fen, depth);
+        if (cancelRef.current) break;
         ev = { ...raw, bestSan: uciToSan(fen, raw.best), pvSan: pvToSan(fen, raw.pv) };
       }
       nextEvals[i] = ev;
@@ -81,6 +82,18 @@ export function useGameAnalysis() {
     engineRef.current?.stop();
   }, []);
 
+  const reset = useCallback(() => {
+    cancelRef.current = true;
+    engineRef.current?.stop();
+    setGame(null);
+    setEvals([]);
+    setResults([]);
+    setPly(0);
+    setProgress(0);
+    setStatus("");
+    setError("");
+  }, []);
+
   const goTo = useCallback(
     (p: number) => {
       if (!game) return;
@@ -89,5 +102,5 @@ export function useGameAnalysis() {
     [game],
   );
 
-  return { game, evals, results, ply, running, progress, status, error, analyse, stop, goTo };
+  return { game, evals, results, ply, running, progress, status, error, analyse, stop, reset, goTo };
 }

@@ -11,8 +11,9 @@ interface EvalGraphProps {
   onSelect: (ply: number) => void;
 }
 
+// Repère interne du SVG (étiré à la taille du conteneur)
 const W = 600;
-const H = 90;
+const H = 100;
 
 export function EvalGraph({ evals, results, ply, onSelect }: EvalGraphProps) {
   const n = evals.length;
@@ -27,7 +28,7 @@ export function EvalGraph({ evals, results, ply, onSelect }: EvalGraphProps) {
 
   return (
     <svg
-      className="block h-24 w-full cursor-pointer rounded-md bg-[#403d39]"
+      className="block h-20 w-full cursor-pointer rounded-lg bg-graph-bg"
       viewBox={`0 0 ${W} ${H}`}
       preserveAspectRatio="none"
       onClick={(e) => {
@@ -35,23 +36,23 @@ export function EvalGraph({ evals, results, ply, onSelect }: EvalGraphProps) {
         onSelect(Math.round(((e.clientX - rect.left) / rect.width) * (n - 1)));
       }}
     >
-      {points.length > 0 && <polygon points={`0,${H} ${points.join(" ")} ${lastX},${H}`} fill="#f0f0f0" />}
-      <line x1={0} y1={H / 2} x2={W} y2={H / 2} stroke="#777" strokeDasharray="3 3" />
+      {points.length > 0 && <polygon className="fill-eval-white" points={`0,${H} ${points.join(" ")} ${lastX},${H}`} />}
+      <line className="stroke-graph-axis" x1={0} y1={H / 2} x2={W} y2={H / 2} strokeDasharray="4 4" vectorEffect="non-scaling-stroke" />
+      <line className="stroke-move-best" x1={x(ply)} y1={0} x2={x(ply)} y2={H} strokeWidth={2} vectorEffect="non-scaling-stroke" />
       {results.map((r, i) =>
-        r && ["inaccuracy", "mistake", "blunder"].includes(r.cls) && evals[i + 1] ? (
+        r && ["inaccuracy", "mistake", "blunder", "best"].includes(r.cls) && evals[i + 1] ? (
           <circle
             key={i}
             cx={x(i + 1)}
             cy={y(evals[i + 1]!.cp)}
-            r={3.5}
-            fill={MOVE_CLASSES[r.cls].color}
-            stroke="#000"
-            strokeWidth={0.8}
+            r={4}
+            style={{ fill: MOVE_CLASSES[r.cls].color }}
+            className="stroke-background"
+            strokeWidth={1}
             vectorEffect="non-scaling-stroke"
           />
         ) : null,
       )}
-      <line x1={x(ply)} y1={0} x2={x(ply)} y2={H} stroke="#81b64c" strokeWidth={2} vectorEffect="non-scaling-stroke" />
     </svg>
   );
 }

@@ -1,33 +1,30 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 import { Chess } from "chess.js";
 import { Board } from "@/components/analyzer/Board";
+import { CoachBubble } from "@/components/analyzer/CoachBubble";
 import { EvalBar } from "@/components/analyzer/EvalBar";
 import { EvalGraph } from "@/components/analyzer/EvalGraph";
-import { MoveDetails } from "@/components/analyzer/MoveDetails";
 import { MoveList } from "@/components/analyzer/MoveList";
 import { PgnInput } from "@/components/analyzer/PgnInput";
+import { PlayerRow } from "@/components/analyzer/PlayerRow";
 import { Summary } from "@/components/analyzer/Summary";
 import { Button } from "@/components/ui/Button";
 import { Card } from "@/components/ui/Card";
+import { ProgressBar } from "@/components/ui/ProgressBar";
 import { useGameAnalysis } from "@/hooks/useGameAnalysis";
 import { playerAccuracy } from "@/lib/analysis";
 
 const START_FEN = new Chess().fen();
 
-function PlayerRow({ name, acc }: { name: string; acc: number | null }) {
-  return (
-    <div className="flex items-center justify-between px-0.5 py-2 text-sm font-semibold">
-      <span>{name}</span>
-      {acc !== null && <span className="font-mono text-xs text-muted">Précision {acc.toFixed(1)}</span>}
-    </div>
-  );
-}
+type Tab = "moves" | "summary";
 
 export function Analyzer() {
-  const { game, evals, results, ply, running, progress, status, error, analyse, stop, goTo } = useGameAnalysis();
+  const { game, evals, results, ply, running, progress, status, error, analyse, stop, reset, goTo } =
+    useGameAnalysis();
   const [flipped, setFlipped] = useState(false);
+  const [tab, setTab] = useState<Tab>("moves");
 
   const fen = game?.fens[ply] ?? START_FEN;
   const lastMove = game && ply > 0 ? game.moves[ply - 1] : null;
@@ -35,92 +32,142 @@ export function Analyzer() {
   const evalNow = evals[ply] ?? null;
   const lastPly = game ? game.fens.length - 1 : 0;
 
+  const startAnalysis = useCallback(
+    (pgn: string, depth: number) => {
+      setTab("moves");
+      analyse(pgn, depth);
+      document.getElementById("analyser")?.scrollIntoView({ behavior: "smooth" });
+    },
+    [analyse],
+  );
+
+  // Navigation au clavier, comme sur chess.com
   useEffect(() => {
     const onKey = (e: KeyboardEvent) => {
       const tag = (e.target as HTMLElement).tagName;
-      if (tag === "TEXTAREA" || tag === "SELECT" || tag === "INPUT") return;
-      if (e.key === "ArrowLeft") { e.preventDefault(); goTo(ply - 1); }
-      if (e.key === "ArrowRight") { e.preventDefault(); goTo(ply + 1); }
-      if (e.key === "Home") goTo(0);
-      if (e.key === "End") goTo(lastPly);
+      if (!game || tag === "TEXTAREA" || tag === "SELECT" || tag === "INPUT") return;
+      const actions: Record<string, () => void> = {
+        ArrowLeft: () => goTo(ply - 1),
+        ArrowRight: () => goTo(ply + 1),
+        ArrowUp: () => goTo(0),
+        ArrowDown: () => goTo(lastPly),
+        Home: () => goTo(0),
+        End: () => goTo(lastPly),
+      };
+      const action = actions[e.key];
+      if (action) {
+        e.preventDefault(); // empêche la page de défiler
+        action();
+      }
     };
     window.addEventListener("keydown", onKey);
     return () => window.removeEventListener("keydown", onKey);
-  }, [goTo, ply, lastPly]);
+  }, [game, goTo, ply, lastPly]);
 
-  const white = game?.white ?? "Blancs";
-  const black = game?.black ?? "Noirs";
-  const accW = playerAccuracy(results, "w");
-  const accB = playerAccuracy(results, "b");
-  const top = flipped ? { name: white, acc: accW } : { name: black, acc: accB };
-  const bottom = flipped ? { name: black, acc: accB } : { name: white, acc: accW };
+  const white = { name: game?.white ?? "Blancs", color: "w" as const, accuracy: playerAccuracy(results, "w") };
+  const black = { name: game?.black ?? "Noirs", color: "b" as const, accuracy: playerAccuracy(results, "b") };
+  const top = flipped ? white : black;
+  const bottom = flipped ? black : white;
 
   return (
-    <div className="grid gap-6 lg:grid-cols-[minmax(0,560px)_minmax(320px,1fr)]">
-      <div className="min-w-0">
-        <div className="pl-8">
+    <div className="mx-auto grid max-w-7xl gap-6 px-5 py-6 lg:h-analyzer lg:grid-analyzer lg:px-8">
+      {/* ---------- Échiquier ---------- */}
+      <div className="flex min-h-0 items-center justify-center">
+        <div className="grid grid-board">
+          <span />
           <PlayerRow {...top} />
-        </div>
-        <div className="flex gap-2">
           <EvalBar evaluation={evalNow} flipped={flipped} />
-          <div className="min-w-0 flex-1">
-            <Board
-              fen={fen}
-              lastMove={lastMove}
-              lastResult={lastResult}
-              bestMove={evalNow?.best ?? null}
-              flipped={flipped}
-            />
-          </div>
-        </div>
-        <div className="pl-8">
+          <Board fen={fen} lastMove={lastMove} lastResult={lastResult} bestMove={evalNow?.best ?? null} flipped={flipped} />
+          <span />
           <PlayerRow {...bottom} />
-          <div className="mt-1 grid grid-cols-5 gap-1.5">
-            <Button title="Début" onClick={() => goTo(0)}>⏮</Button>
-            <Button title="Coup précédent (←)" onClick={() => goTo(ply - 1)}>◀</Button>
-            <Button title="Coup suivant (→)" onClick={() => goTo(ply + 1)}>▶</Button>
-            <Button title="Fin" onClick={() => goTo(lastPly)}>⏭</Button>
-            <Button title="Retourner le plateau" onClick={() => setFlipped((f) => !f)}>⇅</Button>
-          </div>
         </div>
       </div>
 
-      <div className="flex min-w-0 flex-col gap-4">
-        <Card>
-          <PgnInput running={running} progress={progress} status={status} error={error} onAnalyse={analyse} onStop={stop} />
-        </Card>
-
-        {results.some(Boolean) && (
-          <Card>
-            <Summary results={results} white={white} black={black} />
-          </Card>
-        )}
-
-        {game && (
-          <Card className="p-3">
-            <EvalGraph evals={evals} results={results} ply={ply} onSelect={goTo} />
-          </Card>
-        )}
-
-        <Card>
-          {game ? (
-            <MoveDetails
-              ply={ply}
-              move={lastMove}
-              fenBefore={ply > 0 ? game.fens[ply - 1] : null}
-              result={lastResult}
-              evalBefore={ply > 0 ? (evals[ply - 1] ?? null) : null}
-              evalNow={evalNow}
-            />
-          ) : (
-            <p className="text-sm text-muted">Aucune partie chargée.</p>
+      {/* ---------- Panneau « Bilan » ---------- */}
+      <Card className="flex h-panel-mobile min-h-0 flex-col overflow-hidden lg:h-full">
+        <header className="flex items-center justify-between border-b border-line px-5 py-4">
+          <h2 className="flex items-center gap-2.5 font-display text-xl text-cream">
+            <span className="flex size-7 items-center justify-center rounded-full bg-move-best text-sm text-cream">★</span>
+            Bilan
+          </h2>
+          {game && (
+            <Button variant="ghost" size="sm" onClick={reset}>
+              Nouvelle partie
+            </Button>
           )}
-        </Card>
+        </header>
 
-        <Card>
-          <MoveList moves={game?.moves ?? []} results={results} ply={ply} startFen={game?.fens[0] ?? START_FEN} onSelect={goTo} />
-        </Card>
-      </div>
+        {!game ? (
+          <PgnInput error={error} onAnalyse={startAnalysis} />
+        ) : (
+          <>
+            {running && (
+              <div className="flex items-center gap-3 border-b border-line px-5 py-3">
+                <div className="flex-1">
+                  <ProgressBar value={progress} />
+                  <p className="mt-1.5 text-xs text-muted">{status}</p>
+                </div>
+                <Button variant="danger" size="sm" onClick={stop}>
+                  Arrêter
+                </Button>
+              </div>
+            )}
+
+            {/* Onglets */}
+            <div className="flex gap-1 border-b border-line px-3">
+              {(
+                [
+                  ["moves", "Coups"],
+                  ["summary", "Résumé"],
+                ] as const
+              ).map(([id, label]) => (
+                <button
+                  key={id}
+                  onClick={() => setTab(id)}
+                  className={`border-b-2 px-3 py-3 text-sm font-semibold transition ${
+                    tab === id ? "border-gold text-cream" : "border-transparent text-muted hover:text-ink"
+                  }`}
+                >
+                  {label}
+                </button>
+              ))}
+            </div>
+
+            {tab === "moves" ? (
+              <>
+                <div className="flex flex-col gap-4 p-5 pb-3">
+                  <CoachBubble
+                    ply={ply}
+                    move={lastMove}
+                    result={lastResult}
+                    evalBefore={ply > 0 ? (evals[ply - 1] ?? null) : null}
+                    evalNow={evalNow}
+                    running={running}
+                  />
+                  <Button variant="accent" size="lg" disabled={ply >= lastPly} onClick={() => goTo(ply + 1)}>
+                    Suivant →
+                  </Button>
+                </div>
+                <MoveList moves={game.moves} results={results} ply={ply} startFen={game.fens[0]} onSelect={goTo} />
+                <div className="px-5 pb-3 pt-2">
+                  <EvalGraph evals={evals} results={results} ply={ply} onSelect={goTo} />
+                </div>
+              </>
+            ) : (
+              <Summary results={results} white={game.white} black={game.black} />
+            )}
+
+            {/* Navigation */}
+            <div className="grid grid-cols-5 gap-2 border-t border-line p-3">
+              <Button title="Début (↑)" onClick={() => goTo(0)}>⏮</Button>
+              <Button title="Coup précédent (←)" onClick={() => goTo(ply - 1)}>◀</Button>
+              <Button title="Coup suivant (→)" onClick={() => goTo(ply + 1)}>▶</Button>
+              <Button title="Fin (↓)" onClick={() => goTo(lastPly)}>⏭</Button>
+              <Button title="Retourner l’échiquier" onClick={() => setFlipped((f) => !f)}>⇅</Button>
+            </div>
+          </>
+        )}
+      </Card>
     </div>
   );
 }
