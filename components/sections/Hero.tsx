@@ -46,32 +46,13 @@ export function Hero() {
         </h1>
 
         <p
-          className={`mt-6 max-w-lg text-[15px] leading-relaxed text-[#cfc5b6]/80 transition-all delay-500 duration-1000 sm:text-base ${
+          className={`mt-6 max-w-4xl text-[16px] leading-relaxed text-white transition-all font-bold delay-500 duration-1000 sm:text-base ${
             ready ? "translate-y-0 opacity-100" : "translate-y-4 opacity-0"
           }`}
         >
           Colle ta partie chess.com. Stockfish évalue chaque coup, repère tes gaffes et te montre le meilleur
           coup. Gratuitement, sans abonnement.
         </p>
-
-        <div
-          className={`pointer-events-auto mt-9 flex flex-wrap justify-center gap-3 transition-all delay-700 duration-1000 ${
-            ready ? "translate-y-0 opacity-100" : "translate-y-4 opacity-0"
-          }`}
-        >
-          <a
-            href="#analyser"
-            className="rounded-full bg-[#f3ece0] px-7 py-3 text-sm font-semibold text-[#14110e] transition-colors hover:bg-white"
-          >
-            Analyser une partie
-          </a>
-          <a
-            href="#fonctionnement"
-            className="rounded-full border border-[#f3ece0]/20 bg-white/5 px-7 py-3 text-sm font-semibold text-[#f3ece0] backdrop-blur-md transition-colors hover:bg-white/10"
-          >
-            Comment ça marche
-          </a>
-        </div>
 
       </div>
     </section>
