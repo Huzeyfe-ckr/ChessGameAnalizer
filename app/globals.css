@@ -1,0 +1,44 @@
+@import "tailwindcss";
+
+@theme {
+  --color-background: #100f0d;
+  --color-surface: #1c1b18;
+  --color-surface-2: #2b2925;
+  --color-surface-3: #36332e;
+  --color-line: #33302b;
+  --color-ink: #ece9e4;
+  --color-muted: #9a968f;
+  --color-brand: #81b64c;
+  --color-brand-light: #a3d16e;
+  --color-sq-light: #ebecd0;
+  --color-sq-dark: #779556;
+
+  --font-sans: "Inter Variable", ui-sans-serif, system-ui, sans-serif;
+  --font-display: "Playfair Display Variable", Georgia, serif;
+  --font-mono: "JetBrains Mono Variable", ui-monospace, monospace;
+}
+
+html {
+  scroll-behavior: smooth;
+  color-scheme: dark;
+}
+
+body {
+  @apply bg-background text-ink font-sans antialiased;
+}
+
+/* Glyphes Unicode des pièces : on force l'affichage texte (pas emoji). */
+.chess-glyph {
+  font-family: "Segoe UI Symbol", "DejaVu Sans", "Noto Sans Symbols 2", serif;
+  font-variant-emoji: text;
+}
+
+.piece-white {
+  color: #fff;
+  text-shadow: 0 0 2px #000, 0 0 1px #000, 0 1px 2px rgb(0 0 0 / 0.6);
+}
+
+.piece-black {
+  color: #1d1b19;
+  text-shadow: 0 0 1px rgb(255 255 255 / 0.35);
+}
